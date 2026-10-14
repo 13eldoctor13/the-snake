@@ -39,9 +39,11 @@ APPLE_POINTS = 10
 # Время жизни яблока в миллисекундах (10 секунд):
 FOOD_LIFETIME = 10000
 
-# Глобальные переменные для экрана, таймера и шрифтов:
-screen: Optional[pygame.Surface] = None
-clock: Optional[pygame.time.Clock] = None
+pygame.init()
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), 0, 32)
+clock = pygame.time.Clock()
+
+# Глобальные переменные:
 FONT_HUD: Optional[pygame.font.Font] = None
 FONT_HUD_BOLD: Optional[pygame.font.Font] = None
 
@@ -49,7 +51,7 @@ FONT_HUD_BOLD: Optional[pygame.font.Font] = None
 class GameObject:
     """Базовый класс для всех игровых объектов."""
 
-    def __init__(self, position, body_color):
+    def __init__(self, position=(0, 0), body_color=WHITE):
         self.position = position
         self.body_color = body_color
 
@@ -152,7 +154,7 @@ class Snake(GameObject):
 class Apple(GameObject):
     """Класс, описывающий полезную еду"""
 
-    def __init__(self, position, body_color=RED):
+    def __init__(self, position=(0, 0), body_color=RED):
         super().__init__(position, body_color)
 
     def draw(self):
