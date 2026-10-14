@@ -234,23 +234,23 @@ def format_time(seconds):
     """Преобразует секунды в строку MM:SS."""
     minutes = seconds // 60
     secs = seconds % 60
-    return f"{minutes:02d}:{secs:02d}"
+    return f'{minutes:02d}:{secs:02d}'
 
 
 def draw_hud(score, elapsed_seconds, best_score, best_time):
     """Отрисовывает интерфейс (HUD)."""
-    score_text = FONT_HUD_BOLD.render(f"Счёт: {score}", True, WHITE)
-    time_str = f"Время: {format_time(elapsed_seconds)}"
+    score_text = FONT_HUD_BOLD.render(f'Счёт: {score}', True, WHITE)
+    time_str = f'Время: {format_time(elapsed_seconds)}'
     time_text = FONT_HUD_BOLD.render(time_str, True, WHITE)
 
     screen.blit(score_text, (10, 8))
     screen.blit(time_text, (SCREEN_WIDTH - time_text.get_width() - 10, 8))
 
     if best_score > 0:
-        record_str = f"Рекорд: {best_score} ({format_time(best_time)})"
+        record_str = f'Рекорд: {best_score} ({format_time(best_time)})'
         record_text = FONT_HUD.render(record_str, True, GOLD)
     else:
-        record_text = FONT_HUD.render("Рекорд: —", True, GOLD)
+        record_text = FONT_HUD.render('Рекорд: —', True, GOLD)
     screen.blit(
         record_text,
         (SCREEN_WIDTH // 2 - record_text.get_width() // 2, 8)
@@ -265,11 +265,11 @@ def main():
     global screen, clock, FONT_HUD, FONT_HUD_BOLD
     pygame.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), 0, 32)
-    pygame.display.set_caption("Змейка")
+    pygame.display.set_caption('Змейка')
     clock = pygame.time.Clock()
     # Загружаем шрифты для отрисовки интерфейса:
-    FONT_HUD = pygame.font.SysFont("arial", 18)
-    FONT_HUD_BOLD = pygame.font.SysFont("arial", 20, bold=True)
+    FONT_HUD = pygame.font.SysFont('arial', 18)
+    FONT_HUD_BOLD = pygame.font.SysFont('arial', 20, bold=True)
     # Вычисляем стартовые координаты для игрока (центр экрана):
     start_x = (GRID_WIDTH // 2) * GRID_SIZE
     start_y = (GRID_HEIGHT // 2) * GRID_SIZE
@@ -353,5 +353,5 @@ def main():
         pygame.display.update()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
