@@ -181,7 +181,7 @@ class Apple(GameObject):
 class BadFood(GameObject):
     """Класс, описывающий плохую еду"""
 
-    def __init__(self, position, body_color=PURPLE):
+    def __init__(self, position=(0, 0), body_color=PURPLE):
         super().__init__(position, body_color)
 
     def draw(self):
@@ -259,69 +259,60 @@ def draw_hud(score, elapsed_seconds, best_score, best_time):
     else:
         record_text = FONT_HUD.render('Рекорд: —', True, GOLD)
     screen.blit(
-        record_text, (SCREEN_WIDTH // 2 - record_text.get_width() // 2, 8)
+        record_text,
+        (SCREEN_WIDTH // 2 - record_text.get_width() // 2, 8)
     )
 
 
 def main():
-    """
-    Основная функция: инициализирует Pygame,
-    создает объекты и запускает игровой цикл
-    """
-    global screen, clock, FONT_HUD, FONT_HUD_BOLD
-    pygame.init()
-    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), 0, 32)
+    """Основная функция: запускает игровой цикл"""
+    global FONT_HUD, FONT_HUD_BOLD
     pygame.display.set_caption('Змейка')
-    clock = pygame.time.Clock()
-    # Загружаем шрифты для отрисовки интерфейса:
+
     FONT_HUD = pygame.font.SysFont('arial', 18)
     FONT_HUD_BOLD = pygame.font.SysFont('arial', 20, bold=True)
-    # Вычисляем стартовые координаты для игрока (центр экрана):
+
     start_x = (GRID_WIDTH // 2) * GRID_SIZE
     start_y = (GRID_HEIGHT // 2) * GRID_SIZE
-    # Создаем экземпляр змейки:
+
     snake = Snake((start_x, start_y))
-    # Инициализация обычной и плохой еды:
-    apple = Apple((0, 0))
+    apple = Apple()
     apple.randomize_position(snake.positions)
-    bad_food = BadFood((0, 0))
+
+    bad_food = BadFood()
     bad_food.randomize_position(snake.positions + [apple.position])
-    # Инициализируем переменные состояния игры:
+
     score = 0
     start_ticks = pygame.time.get_ticks()
-    # Раздельные таймеры для объектов еды
     apple_start_ticks = pygame.time.get_ticks()
     bad_food_start_ticks = pygame.time.get_ticks()
+
     elapsed_seconds = 0
     best_score = 0
     best_time = 0
     current_speed = START_SPEED
-    # Главный игровой цикл:
+
     while True:
-        # Регулируем скорость игры (количество кадров/шагов в секунду):
         clock.tick(current_speed)
-        # Опрашиваем нажатия клавиш:
         handle_keys(snake)
+
         current_ticks = pygame.time.get_ticks()
-        # Вычисляем, сколько секунд длится текущая партия:
         elapsed_seconds = (current_ticks - start_ticks) // 1000
-        # Обновление позиции обычного яблока по таймеру
+
         if current_ticks - apple_start_ticks >= FOOD_LIFETIME:
             apple.randomize_position(snake.positions + [bad_food.position])
             apple_start_ticks = current_ticks
-        # Обновление позиции плохой еды по таймеру
+
         if current_ticks - bad_food_start_ticks >= FOOD_LIFETIME:
             bad_food.randomize_position(snake.positions + [apple.position])
             bad_food_start_ticks = current_ticks
-        # Делаем шаг змейки вперед:
+
         snake.move()
-        # ЛОГИКА ПРОИГРЫША: Проверяем собственную коллизию
+
         if snake.check_self_collision():
-            # Обновляем рекорд сессии, если текущий счет больше предыдущего:
             if score > best_score:
                 best_score = score
                 best_time = elapsed_seconds
-            # Сбрасываем все параметры к начальным значениям:
             snake.reset()
             apple.randomize_position(snake.positions)
             bad_food.randomize_position(snake.positions + [apple.position])
@@ -332,22 +323,21 @@ def main():
             bad_food_start_ticks = pygame.time.get_ticks()
             elapsed_seconds = 0
             continue
-        # Столкновение с хорошим яблоком
+
         if snake.get_head_position() == apple.position:
             snake.grow()
             score += APPLE_POINTS
             apple.randomize_position(snake.positions + [bad_food.position])
-            apple_start_ticks = pygame.time.get_ticks()
-            # Увеличиваем скорость игры
+            apple_start_ticks = current_ticks
             current_speed = min(START_SPEED + (score // 20), MAX_SPEED)
-        # Столкновение с плохой едой
+
         elif snake.get_head_position() == bad_food.position:
             score = max(0, score - APPLE_POINTS)
             snake.shrink()
             bad_food.randomize_position(snake.positions + [apple.position])
             bad_food_start_ticks = current_ticks
             current_speed = min(START_SPEED + (score // 20), MAX_SPEED)
-        # Отрисовка элементов на каждом игровом шаге
+
         screen.fill(BOARD_BACKGROUND_COLOR)
         draw_grid()
         apple.draw()
