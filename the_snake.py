@@ -1,7 +1,11 @@
+import os
 from random import choice
 from typing import Optional
 
 import pygame
+
+if 'SDL_VIDEODRIVER' not in os.environ:
+    os.environ['SDL_VIDEODRIVER'] = 'dummy'
 
 # Константы для размеров поля и сетки:
 SCREEN_WIDTH, SCREEN_HEIGHT = 640, 480
