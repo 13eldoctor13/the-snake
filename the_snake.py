@@ -1,11 +1,7 @@
-import os
 from random import choice
 from typing import Optional
 
 import pygame
-
-if 'SDL_VIDEODRIVER' not in os.environ:
-    os.environ['SDL_VIDEODRIVER'] = 'dummy'
 
 # Константы для размеров поля и сетки:
 SCREEN_WIDTH, SCREEN_HEIGHT = 640, 480
@@ -168,17 +164,16 @@ class Apple(GameObject):
         pygame.draw.circle(screen, BORDER_COLOR, (cx, cy), radius, 1)
 
     def randomize_position(self, occupied):
-        """Перемещает яблоко в рандомную клетку"""
+        """Перемещает еду в рандомную клетку"""
+        occupied_set = set(occupied)
         free_cells = [
             (x * GRID_SIZE, y * GRID_SIZE)
             for x in range(GRID_WIDTH)
             for y in range(GRID_HEIGHT)
-            if (x * GRID_SIZE, y * GRID_SIZE) not in occupied
+            if (x * GRID_SIZE, y * GRID_SIZE) not in occupied_set
         ]
         if free_cells:
             self.position = choice(free_cells)
-        else:
-            pass
 
 
 class BadFood(GameObject):
@@ -196,17 +191,16 @@ class BadFood(GameObject):
         pygame.draw.circle(screen, BORDER_COLOR, (cx, cy), radius, 1)
 
     def randomize_position(self, occupied):
-        """Перемещает плохую еду в рандомную клетку"""
+        """Перемещает еду в рандомную клетку"""
+        occupied_set = set(occupied)
         free_cells = [
             (x * GRID_SIZE, y * GRID_SIZE)
             for x in range(GRID_WIDTH)
             for y in range(GRID_HEIGHT)
-            if (x * GRID_SIZE, y * GRID_SIZE) not in occupied
+            if (x * GRID_SIZE, y * GRID_SIZE) not in occupied_set
         ]
         if free_cells:
             self.position = choice(free_cells)
-        else:
-            pass
 
 
 def handle_keys(game_object):
@@ -347,11 +341,9 @@ def main():
         # Столкновение с плохой едой
         elif snake.get_head_position() == bad_food.position:
             score = max(0, score - APPLE_POINTS)
-            # Уменьшаем длину змейки, если она больше стартовой
-            if len(snake.positions) > 3:
-                snake.last = snake.positions.pop()
+            snake.shrink()
             bad_food.randomize_position(snake.positions + [apple.position])
-            bad_food_start_ticks = pygame.time.get_ticks()
+            bad_food_start_ticks = current_ticks
             current_speed = min(START_SPEED + (score // 20), MAX_SPEED)
         # Отрисовка элементов на каждом игровом шаге
         screen.fill(BOARD_BACKGROUND_COLOR)
