@@ -1,6 +1,5 @@
 from random import choice
 from typing import Optional
-
 import pygame
 
 # Константы для размеров поля и сетки:
@@ -38,9 +37,6 @@ APPLE_POINTS = 10
 
 # Время жизни яблока в миллисекундах (10 секунд):
 FOOD_LIFETIME = 10000
-
-# Заголовок окна игрового поля:
-pygame.display.set_caption('Змейка')
 
 # Глобальные переменные для экрана, таймера и шрифтов:
 screen: Optional[pygame.Surface] = None
