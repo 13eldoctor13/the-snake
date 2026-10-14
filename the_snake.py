@@ -1,4 +1,4 @@
-from random import randint
+from random import choice
 from typing import Optional
 
 import pygame
@@ -96,18 +96,19 @@ class Snake(GameObject):
         head_x, head_y = self.positions[0]
         dx, dy = self.direction
         new_head = (head_x + dx * GRID_SIZE, head_y + dy * GRID_SIZE)
-
-        # Телепорт
+        # Телепорт через границы
         new_head = (new_head[0] % SCREEN_WIDTH, new_head[1] % SCREEN_HEIGHT)
-
         self.positions.insert(0, new_head)
-        self.last = self.positions.pop()
+        self.positions.pop()
 
     def grow(self):
         """Увеличивает длину змейки"""
-        if self.last is not None:
-            self.positions.append(self.last)
-            self.last = None
+        self.positions.append(self.positions[-1])
+
+    def shrink(self):
+        """Уменьшение длины (не меньше 3 сегментов)"""
+        if len(self.positions) > 3:
+            self.positions.pop()
 
     def draw(self):
         """Отрисовывает все сегменты змейки"""
@@ -167,13 +168,16 @@ class Apple(GameObject):
 
     def randomize_position(self, occupied):
         """Перемещает яблоко в рандомную клетку"""
-        while True:
-            x = randint(0, GRID_WIDTH - 1) * GRID_SIZE
-            y = randint(0, GRID_HEIGHT - 1) * GRID_SIZE
-            # Проверяем, чтобы координата не была занята другими объектами:
-            if (x, y) not in occupied:
-                self.position = (x, y)
-                return
+        free_cells = [
+            (x * GRID_SIZE, y * GRID_SIZE)
+            for x in range(GRID_WIDTH)
+            for y in range(GRID_HEIGHT)
+            if (x * GRID_SIZE, y * GRID_SIZE) not in occupied
+        ]
+        if free_cells:
+            self.position = choice(free_cells)
+        else:
+            pass
 
 
 class BadFood(GameObject):
@@ -192,12 +196,16 @@ class BadFood(GameObject):
 
     def randomize_position(self, occupied):
         """Перемещает плохую еду в рандомную клетку"""
-        while True:
-            x = randint(0, GRID_WIDTH - 1) * GRID_SIZE
-            y = randint(0, GRID_HEIGHT - 1) * GRID_SIZE
-            if (x, y) not in occupied:
-                self.position = (x, y)
-                return
+        free_cells = [
+            (x * GRID_SIZE, y * GRID_SIZE)
+            for x in range(GRID_WIDTH)
+            for y in range(GRID_HEIGHT)
+            if (x * GRID_SIZE, y * GRID_SIZE) not in occupied
+        ]
+        if free_cells:
+            self.position = choice(free_cells)
+        else:
+            pass
 
 
 def handle_keys(game_object):
