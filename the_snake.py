@@ -67,11 +67,18 @@ class GameObject:
 class Snake(GameObject):
     """Поведение, отрисовка змейки"""
 
-    def __init__(self, position, body_color=GREEN):
+    def __init__(self, position=None, body_color=GREEN):
         """
         Инициализирует змейку в центре поля
         с начальной длиной в 3 сегмента
         """
+        if position is None:
+            # Разбиваем длинную строку в соответствии с PEP 8:
+            position = (
+                (GRID_WIDTH // 2) * GRID_SIZE,
+                (GRID_HEIGHT // 2) * GRID_SIZE
+            )
+
         super().__init__(position, body_color)
         x, y = position
         self.positions = [(x, y), (x - GRID_SIZE, y), (x - 2 * GRID_SIZE, y)]
