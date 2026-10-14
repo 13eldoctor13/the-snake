@@ -1,5 +1,6 @@
 from random import choice
 from typing import Optional
+
 import pygame
 
 # Константы для размеров поля и сетки:
