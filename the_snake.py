@@ -269,12 +269,15 @@ def main():
     global FONT_HUD, FONT_HUD_BOLD
     pygame.display.set_caption('Змейка')
 
+    # Загрузка шрифтов для интерфейса (HUD):
     FONT_HUD = pygame.font.SysFont('arial', 18)
     FONT_HUD_BOLD = pygame.font.SysFont('arial', 20, bold=True)
 
+    # Стартовые координаты змейки (центр экрана):
     start_x = (GRID_WIDTH // 2) * GRID_SIZE
     start_y = (GRID_HEIGHT // 2) * GRID_SIZE
 
+    # Создание игровых объектов:
     snake = Snake((start_x, start_y))
     apple = Apple()
     apple.randomize_position(snake.positions)
@@ -282,6 +285,7 @@ def main():
     bad_food = BadFood()
     bad_food.randomize_position(snake.positions + [apple.position])
 
+    # Параметры состояния игры:
     score = 0
     start_ticks = pygame.time.get_ticks()
     apple_start_ticks = pygame.time.get_ticks()
@@ -292,27 +296,35 @@ def main():
     best_time = 0
     current_speed = START_SPEED
 
+    # Главный игровой цикл:
     while True:
+        # Регулировка скорости (FPS) текущего шага:
         clock.tick(current_speed)
+        # Обработка нажатий клавиш:
         handle_keys(snake)
 
         current_ticks = pygame.time.get_ticks()
         elapsed_seconds = (current_ticks - start_ticks) // 1000
 
+        # Обновление позиции обычного яблока по таймеру (10 сек):
         if current_ticks - apple_start_ticks >= FOOD_LIFETIME:
             apple.randomize_position(snake.positions + [bad_food.position])
             apple_start_ticks = current_ticks
 
+        # Обновление позиции плохой еды по таймеру (10 сек):
         if current_ticks - bad_food_start_ticks >= FOOD_LIFETIME:
             bad_food.randomize_position(snake.positions + [apple.position])
             bad_food_start_ticks = current_ticks
 
+        # Продвижение змейки вперед:
         snake.move()
 
+        # ЛОГИКА ПРОИГРЫША (Столкновение с собой):
         if snake.check_self_collision():
             if score > best_score:
                 best_score = score
                 best_time = elapsed_seconds
+            # Сброс игры к начальному состоянию:
             snake.reset()
             apple.randomize_position(snake.positions)
             bad_food.randomize_position(snake.positions + [apple.position])
@@ -324,20 +336,25 @@ def main():
             elapsed_seconds = 0
             continue
 
+        # Столкновение с хорошим яблоком:
         if snake.get_head_position() == apple.position:
             snake.grow()
             score += APPLE_POINTS
             apple.randomize_position(snake.positions + [bad_food.position])
             apple_start_ticks = current_ticks
+            # Рассчет новой скорости на основе очков:
             current_speed = min(START_SPEED + (score // 20), MAX_SPEED)
 
+        # Столкновение с плохой едой:
         elif snake.get_head_position() == bad_food.position:
             score = max(0, score - APPLE_POINTS)
+            # Корректное безопасное уменьшение змейки:
             snake.shrink()
             bad_food.randomize_position(snake.positions + [apple.position])
             bad_food_start_ticks = current_ticks
             current_speed = min(START_SPEED + (score // 20), MAX_SPEED)
 
+        # Отрисовка обновленного кадра:
         screen.fill(BOARD_BACKGROUND_COLOR)
         draw_grid()
         apple.draw()
