@@ -251,10 +251,8 @@ def draw_hud(score, elapsed_seconds, best_score, best_time):
     best_time_formatted = format_time(best_time)
 
     score_text = FONT_HUD_BOLD.render(f'Счёт: {score}', True, WHITE)
-    
     time_str = f'Время: {current_time_formatted}'
     time_text = FONT_HUD_BOLD.render(time_str, True, WHITE)
-    
     screen.blit(score_text, (10, 8))
     screen.blit(time_text, (SCREEN_WIDTH - time_text.get_width() - 10, 8))
 
@@ -263,7 +261,6 @@ def draw_hud(score, elapsed_seconds, best_score, best_time):
         record_text = FONT_HUD.render(record_str, True, GOLD)
     else:
         record_text = FONT_HUD.render('Рекорд: —', True, GOLD)
-        
     screen.blit(
         record_text, (SCREEN_WIDTH // 2 - record_text.get_width() // 2, 8)
     )
