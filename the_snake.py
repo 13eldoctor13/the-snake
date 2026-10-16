@@ -56,13 +56,13 @@ APPLE_POINTS = 10
 
 pygame.init()
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), 0, 32)
-pygame.display.set_caption("Змейка")
+pygame.display.set_caption('Змейка')
 clock = pygame.time.Clock()
 
 # Инициализация шрифтов:
 pygame.font.init()
-FONT_HUD = pygame.font.SysFont("Arial", 18)
-FONT_HUD_BOLD = pygame.font.SysFont("Arial", 18, bold=True)
+FONT_HUD = pygame.font.SysFont('Arial', 18)
+FONT_HUD_BOLD = pygame.font.SysFont('Arial', 18, bold=True)
 
 
 class GameObject:
@@ -144,9 +144,6 @@ class Snake(GameObject):
         head = self.get_head_position()
         self._draw_circle(head, LIGHT_GREEN, GRID_SIZE // 2)
 
-        if self.last:
-            self.draw_cell(self.last, BOARD_BACKGROUND_COLOR)
-
     def _draw_circle(self, position, color, radius):
         """Вспомогательный метод для рисования круглого сегмента."""
         cx = position[0] + GRID_SIZE // 2
@@ -169,7 +166,6 @@ class Snake(GameObject):
             (start_x - 2 * GRID_SIZE, start_y)
         ]
         self.direction = choice([UP, DOWN, LEFT, RIGHT])
-        self.last = None
 
 
 class Apple(GameObject):
@@ -301,11 +297,9 @@ def main():
 
         screen.fill(BOARD_BACKGROUND_COLOR)
         draw_grid()
-
         apple.draw()
         bad_food.draw()
         snake.draw()
-
         draw_hud(score, elapsed_seconds, best_score)
 
         pygame.display.update()
