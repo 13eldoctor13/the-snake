@@ -110,10 +110,14 @@ class Snake(GameObject):
         """Возвращает координаты текущего положения головы."""
         return self.positions[0]
 
+    def update_direction(self, new_direction):
+        """Обновляет направление движения змейки."""
+        self.direction = new_direction
+
     def move(self, new_direction=None):
         """Перемещает змейку вперед на одну ячейку."""
         if new_direction:
-            self.direction = new_direction
+            self.update_direction(new_direction)
 
         head_x, head_y = self.get_head_position()
         dx, dy = self.direction
