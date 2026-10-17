@@ -6,6 +6,7 @@ import pygame
 SCREEN_WIDTH, SCREEN_HEIGHT = 640, 480
 GRID_SIZE = 20
 HUD_HEIGHT = 40
+PLAY_HEIGHT = SCREEN_HEIGHT - HUD_HEIGHT
 GRID_WIDTH = SCREEN_WIDTH // GRID_SIZE
 GRID_HEIGHT = SCREEN_HEIGHT // GRID_SIZE
 
@@ -85,11 +86,11 @@ class GameObject:
         pygame.draw.rect(screen, BORDER_COLOR, rect, 1)
 
     def randomize_position(self, occupied_positions):
-        """Перемещает объект в случайную свободную ячейку поля."""
+        """Перемещает объект в случайную свободную ячейку поля ниже HUD."""
         occupied_set = set(occupied_positions)
         while True:
             random_x = choice(range(GRID_WIDTH)) * GRID_SIZE
-            random_y = choice(range(GRID_HEIGHT)) * GRID_SIZE
+            random_y = HUD_HEIGHT + choice(range(GRID_HEIGHT)) * GRID_SIZE
             new_position = (random_x, random_y)
             if new_position not in occupied_set:
                 self.position = new_position
@@ -115,14 +116,16 @@ class Snake(GameObject):
         self.direction = new_direction
 
     def move(self, new_direction=None):
-        """Перемещает змейку вперед на одну ячейку."""
+        """Перемещает змейку вперед на одну ячейку с учетом границ HUD."""
         if new_direction:
             self.update_direction(new_direction)
 
         head_x, head_y = self.get_head_position()
         dx, dy = self.direction
         new_head_x = (head_x + dx * GRID_SIZE) % SCREEN_WIDTH
-        new_head_y = (head_y + dy * GRID_SIZE) % SCREEN_HEIGHT
+        relative_y = head_y - HUD_HEIGHT
+        new_head_y = HUD_HEIGHT + (relative_y + dy * GRID_SIZE) % PLAY_HEIGHT
+        
         new_head = (new_head_x, new_head_y)
         self.positions.insert(0, new_head)
         self.last = self.positions.pop()
@@ -165,9 +168,9 @@ class Snake(GameObject):
         return head in self.positions[1:]
 
     def reset(self):
-        """Сброс змейки в стартовое состояние."""
+        """Сброс змейки в стартовое состояние в центре игрового поля."""
         start_x = (GRID_WIDTH // 2) * GRID_SIZE
-        start_y = (GRID_HEIGHT // 2) * GRID_SIZE
+        start_y = HUD_HEIGHT + (GRID_HEIGHT // 2) * GRID_SIZE
         self.positions = [(start_x, start_y)]
         self.direction = choice([RIGHT, LEFT, UP, DOWN])
 
@@ -218,8 +221,8 @@ def handle_keys(current_direction):
 def draw_grid():
     """Рисует сетку игрового поля."""
     for x in range(0, SCREEN_WIDTH, GRID_SIZE):
-        pygame.draw.line(screen, GRAY, (x, 0), (x, SCREEN_HEIGHT), 1)
-    for y in range(0, SCREEN_HEIGHT, GRID_SIZE):
+        pygame.draw.line(screen, GRAY, (x, HUD_HEIGHT), (x, SCREEN_HEIGHT), 1)
+    for y in range(HUD_HEIGHT, SCREEN_HEIGHT, GRID_SIZE):
         pygame.draw.line(screen, GRAY, (0, y), (SCREEN_WIDTH, y), 1)
 
 
@@ -242,32 +245,30 @@ def format_time(seconds):
 
 
 def draw_hud(score, elapsed_seconds, best_score):
-    """Отрисовка интерфейса (HUD) с полной очисткой старого текста."""
+    """Отрисовка интерфейса (HUD)."""
     hud_rect = pygame.Rect(0, 0, SCREEN_WIDTH, HUD_HEIGHT)
     pygame.draw.rect(screen, (20, 20, 20), hud_rect)
     pygame.draw.line(
         screen, WHITE, (0, HUD_HEIGHT), (SCREEN_WIDTH, HUD_HEIGHT), 2
     )
     current_time_formatted = format_time(elapsed_seconds)
-    score_text = FONT_HUD_BOLD.render(f"Счёт: {score}", True, WHITE)
+    score_text = FONT_HUD_BOLD.render(f'Счёт: {score}', True, WHITE)
     time_text = FONT_HUD_BOLD.render(
-        f"Время: {current_time_formatted}", True, WHITE
+        f'Время: {current_time_formatted}', True, WHITE
     )
     screen.blit(
         score_text, (20, (HUD_HEIGHT - score_text.get_height()) // 2)
     )
     screen.blit(
-        time_text,
-        (
+        time_text, (
             SCREEN_WIDTH - time_text.get_width() - 20,
             (HUD_HEIGHT - time_text.get_height()) // 2,
         ),
     )
     if best_score > 0:
-        record_text = FONT_HUD.render(f"Рекорд: {best_score}", True, GOLD)
+        record_text = FONT_HUD.render(f'Рекорд: {best_score}', True, GOLD)
         screen.blit(
-            record_text,
-            (
+            record_text, (
                 (SCREEN_WIDTH - record_text.get_width()) // 2,
                 (HUD_HEIGHT - record_text.get_height()) // 2,
             ),
