@@ -125,7 +125,6 @@ class Snake(GameObject):
         new_head_x = (head_x + dx * GRID_SIZE) % SCREEN_WIDTH
         relative_y = head_y - HUD_HEIGHT
         new_head_y = HUD_HEIGHT + (relative_y + dy * GRID_SIZE) % PLAY_HEIGHT
-        
         new_head = (new_head_x, new_head_y)
         self.positions.insert(0, new_head)
         self.last = self.positions.pop()
