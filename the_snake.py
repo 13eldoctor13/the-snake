@@ -248,7 +248,6 @@ def draw_hud(score, elapsed_seconds, best_score):
     pygame.draw.line(
         screen, WHITE, (0, HUD_HEIGHT), (SCREEN_WIDTH, HUD_HEIGHT), 2
     )
-# На строке выше нет пробелов
     current_time_formatted = format_time(elapsed_seconds)
     score_text = FONT_HUD_BOLD.render(f"Счёт: {score}", True, WHITE)
     time_text = FONT_HUD_BOLD.render(
@@ -335,21 +334,17 @@ def main():
             bad_food.randomize_position(snake.positions + [apple.position])
 
         elif head_position == bad_food.position:
-            # СНАЧАЛА стираем плохую еду
             clear_cell(bad_food.position)
 
-            # Стираем обычный хвост, который остался от шага вперед
             if snake.last:
                 clear_cell(snake.last)
 
-            # Уменьшаем змейку и СРАЗУ стираем сегмент, который был отсечен
             removed_tail = snake.shrink()
             if removed_tail:
                 clear_cell(removed_tail)
 
             score = max(0, score - (APPLE_POINTS // 2))
 
-            # Генерируем новую позицию для плохой еды
             bad_food.randomize_position(snake.positions + [apple.position])
 
         else:
