@@ -101,8 +101,6 @@ class Snake(GameObject):
     def __init__(self, position=None, body_color=GREEN):
         """Инициализирует змейку."""
         super().__init__(position, body_color)
-        self.positions = []
-        self.direction = RIGHT
         self.last = None
         self.reset()
 
@@ -150,8 +148,10 @@ class Snake(GameObject):
 
     def _draw_circle(self, position, color, radius):
         """Вспомогательный метод для рисования круглого сегмента."""
-        cx = position[0] + GRID_SIZE // 2
-        cy = position[1] + GRID_SIZE // 2
+        cx, cy = position
+        cx += GRID_SIZE // 2
+        cy += GRID_SIZE // 2
+
         pygame.draw.circle(screen, color, (cx, cy), radius)
         pygame.draw.circle(screen, BORDER_COLOR, (cx, cy), radius, 1)
 
@@ -169,7 +169,7 @@ class Snake(GameObject):
             (start_x - GRID_SIZE, start_y),
             (start_x - 2 * GRID_SIZE, start_y)
         ]
-        self.direction = choice([UP, DOWN, LEFT, RIGHT])
+        self.direction = RIGHT
 
 
 class Apple(GameObject):
