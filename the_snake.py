@@ -5,6 +5,7 @@ import pygame
 # Константы для размеров поля и сетки:
 SCREEN_WIDTH, SCREEN_HEIGHT = 640, 480
 GRID_SIZE = 20
+HUD_HEIGHT = 40
 GRID_WIDTH = SCREEN_WIDTH // GRID_SIZE
 GRID_HEIGHT = SCREEN_HEIGHT // GRID_SIZE
 
@@ -103,6 +104,7 @@ class Snake(GameObject):
         super().__init__(position, body_color)
         self.last = None
         self.reset()
+        self.direction = RIGHT
 
     def get_head_position(self):
         """Возвращает координаты текущего положения головы."""
@@ -128,11 +130,13 @@ class Snake(GameObject):
     def grow(self):
         """Увеличивает длину змейки."""
         self.positions.append(self.positions[-1])
+        self.last = None
 
     def shrink(self):
-        """Уменьшение длины."""
-        if len(self.positions) > 3:
-            self.positions.pop()
+        """Уменьшение длины и возврат позиции удаленного хвоста."""
+        if len(self.positions) > 1:
+            return self.positions.pop()
+        return None
 
     def draw(self):
         """Отрисовывает все сегменты змейки."""
@@ -164,12 +168,8 @@ class Snake(GameObject):
         """Сброс змейки в стартовое состояние."""
         start_x = (GRID_WIDTH // 2) * GRID_SIZE
         start_y = (GRID_HEIGHT // 2) * GRID_SIZE
-        self.positions = [
-            (start_x, start_y),
-            (start_x - GRID_SIZE, start_y),
-            (start_x - 2 * GRID_SIZE, start_y)
-        ]
-        self.direction = RIGHT
+        self.positions = [(start_x, start_y)]
+        self.direction = choice([RIGHT, LEFT, UP, DOWN])
 
 
 class Apple(GameObject):
@@ -177,8 +177,9 @@ class Apple(GameObject):
 
     def draw(self):
         """Отрисовывает яблоко."""
-        cx = self.position[0] + GRID_SIZE // 2
-        cy = self.position[1] + GRID_SIZE // 2
+        x, y = self.position
+        cx = x + GRID_SIZE // 2
+        cy = y + GRID_SIZE // 2
         radius = GRID_SIZE // 2 - 1
         pygame.draw.circle(screen, self.body_color, (cx, cy), radius)
         pygame.draw.circle(screen, BORDER_COLOR, (cx, cy), radius, 1)
@@ -189,8 +190,9 @@ class BadFood(GameObject):
 
     def draw(self):
         """Отрисовывает плохую еду."""
-        cx = self.position[0] + GRID_SIZE // 2
-        cy = self.position[1] + GRID_SIZE // 2
+        x, y = self.position
+        cx = x + GRID_SIZE // 2
+        cy = y + GRID_SIZE // 2
         radius = GRID_SIZE // 2 - 2
         pygame.draw.circle(screen, self.body_color, (cx, cy), radius)
         pygame.draw.circle(screen, BORDER_COLOR, (cx, cy), radius, 1)
@@ -221,6 +223,17 @@ def draw_grid():
         pygame.draw.line(screen, GRAY, (0, y), (SCREEN_WIDTH, y), 1)
 
 
+def clear_cell(position):
+    """Затирает одну ячейку цветом фона и восстанавливает сетку вокруг неё."""
+    if position is None:
+        return
+    x, y = position
+    rect = pygame.Rect(x - 1, y - 1, GRID_SIZE + 2, GRID_SIZE + 2)
+    pygame.draw.rect(screen, BOARD_BACKGROUND_COLOR, rect)
+    orig_rect = pygame.Rect(x, y, GRID_SIZE, GRID_SIZE)
+    pygame.draw.rect(screen, GRAY, orig_rect, 1)
+
+
 def format_time(seconds):
     """Преобразует секунды в строку MM:SS."""
     minutes = seconds // 60
@@ -229,21 +242,45 @@ def format_time(seconds):
 
 
 def draw_hud(score, elapsed_seconds, best_score):
-    """Отрисовка интерфейса (HUD)."""
-    current_time_formatted = format_time(elapsed_seconds)
-    score_text = FONT_HUD_BOLD.render(f'Счёт: {score}', True, WHITE)
-    time_text = FONT_HUD_BOLD.render(
-        f'Время: {current_time_formatted}', True, WHITE
+    """Отрисовка интерфейса (HUD) с полной очисткой старого текста."""
+    hud_rect = pygame.Rect(0, 0, SCREEN_WIDTH, HUD_HEIGHT)
+    pygame.draw.rect(screen, (20, 20, 20), hud_rect)
+    pygame.draw.line(
+        screen, WHITE, (0, HUD_HEIGHT), (SCREEN_WIDTH, HUD_HEIGHT), 2
     )
-    screen.blit(score_text, (10, 8))
-    screen.blit(time_text, (SCREEN_WIDTH - time_text.get_width() - 10, 8))
-
+# На строке выше нет пробелов
+    current_time_formatted = format_time(elapsed_seconds)
+    score_text = FONT_HUD_BOLD.render(f"Счёт: {score}", True, WHITE)
+    time_text = FONT_HUD_BOLD.render(
+        f"Время: {current_time_formatted}", True, WHITE
+    )
+    screen.blit(
+        score_text, (20, (HUD_HEIGHT - score_text.get_height()) // 2)
+    )
+    screen.blit(
+        time_text,
+        (
+            SCREEN_WIDTH - time_text.get_width() - 20,
+            (HUD_HEIGHT - time_text.get_height()) // 2,
+        ),
+    )
     if best_score > 0:
-        record_text = FONT_HUD.render(f'Рекорд: {best_score}', True, GOLD)
+        record_text = FONT_HUD.render(f"Рекорд: {best_score}", True, GOLD)
         screen.blit(
             record_text,
-            (SCREEN_WIDTH // 2 - record_text.get_width() // 2, 8)
+            (
+                (SCREEN_WIDTH - record_text.get_width()) // 2,
+                (HUD_HEIGHT - record_text.get_height()) // 2,
+            ),
         )
+
+
+def reset_game_screen(snake, apple, bad_food):
+    """Полная очистка и подготовка экрана при старте или проигрыше."""
+    screen.fill(BOARD_BACKGROUND_COLOR)
+    draw_grid()
+    apple.randomize_position(snake.positions)
+    bad_food.randomize_position(snake.positions + [apple.position])
 
 
 def main():
@@ -252,8 +289,7 @@ def main():
     apple = Apple(body_color=RED)
     bad_food = BadFood(body_color=PURPLE)
 
-    apple.randomize_position(snake.positions)
-    bad_food.randomize_position(snake.positions + [apple.position])
+    reset_game_screen(snake, apple, bad_food)
 
     score = 0
     best_score = 0
@@ -276,36 +312,54 @@ def main():
         head_position = snake.get_head_position()
 
         if snake.check_self_collision():
+
             if score > best_score:
+
                 best_score = score
             score = 0
             snake.reset()
             next_direction = snake.direction
             start_ticks = pygame.time.get_ticks()
-            apple.randomize_position(snake.positions)
-            bad_food.randomize_position(snake.positions + [apple.position])
-
-            screen.fill(BOARD_BACKGROUND_COLOR)
+            reset_game_screen(snake, apple, bad_food)
             continue
 
         if head_position == apple.position:
+            clear_cell(apple.position)
+            clear_cell(bad_food.position)
+
+            if snake.last:
+                clear_cell(snake.last)
             snake.grow()
             score += APPLE_POINTS
             apple.randomize_position(snake.positions)
             bad_food.randomize_position(snake.positions + [apple.position])
 
         elif head_position == bad_food.position:
-            snake.shrink()
+            # СНАЧАЛА стираем плохую еду
+            clear_cell(bad_food.position)
+
+            # Стираем обычный хвост, который остался от шага вперед
+            if snake.last:
+                clear_cell(snake.last)
+
+            # Уменьшаем змейку и СРАЗУ стираем сегмент, который был отсечен
+            removed_tail = snake.shrink()
+            if removed_tail:
+                clear_cell(removed_tail)
+
             score = max(0, score - (APPLE_POINTS // 2))
+
+            # Генерируем новую позицию для плохой еды
             bad_food.randomize_position(snake.positions + [apple.position])
 
-        screen.fill(BOARD_BACKGROUND_COLOR)
-        draw_grid()
+        else:
+            if snake.last:
+                clear_cell(snake.last)
+
         apple.draw()
         bad_food.draw()
         snake.draw()
         draw_hud(score, elapsed_seconds, best_score)
-
         pygame.display.update()
 
 
